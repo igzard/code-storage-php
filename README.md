@@ -1,6 +1,8 @@
 # code-storage-php
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/igzard/code-storage-php.svg?style=flat-square)](https://packagist.org/packages/igzard/code-storage-php)
+[![Total Downloads](https://img.shields.io/packagist/dt/igzard/code-storage-php.svg?style=flat-square)](https://packagist.org/packages/igzard/code-storage-php)
+[![License](https://img.shields.io/packagist/l/igzard/code-storage-php.svg?style=flat-square)](https://packagist.org/packages/igzard/code-storage-php)
 
 Pierre Code Storage SDK for PHP — a port of
 [`code-storage-go`](https://github.com/pierrecomputer/sdk/tree/main/packages/code-storage-go).
