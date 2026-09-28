@@ -59,9 +59,13 @@ final class ApiFetcher
             ->withHeader('Code-Storage-Agent', Version::userAgent());
 
         if ($body !== null) {
+            // An empty PHP array encodes as []. Every request body in this API is a
+            // JSON object; pullUpstream() with no ref is the call that would otherwise
+            // send [] and be rejected by a decoder that expects an object.
+            $encoded = $body === [] ? '{}' : Json::encode($body);
             $request = $request
                 ->withHeader('Content-Type', 'application/json')
-                ->withBody($this->streamFactory->createStream(Json::encode($body)));
+                ->withBody($this->streamFactory->createStream($encoded));
         }
         foreach ($extraHeaders as $name => $value) {
             if ($value !== '') {

@@ -146,6 +146,25 @@ final class RepoReadTest extends TestCase
         self::assertSame('2024-06-15T12:00:00+00:00', $meta->lastModified?->format('c'));
     }
 
+    public function test_head_file_treats_last_modified_as_gmt(): void
+    {
+        $previous = date_default_timezone_get();
+        date_default_timezone_set('Pacific/Auckland');
+
+        try {
+            $http = new MockHttpClient(MockHttpClient::text('', 200, [
+                'Last-Modified' => 'Sat, 15 Jun 2024 12:00:00 GMT',
+            ]));
+
+            $meta = $this->repo($http)->headFile(path: 'README.md');
+
+            self::assertSame('2024-06-15T12:00:00+00:00', $meta->lastModified?->format('c'));
+            self::assertSame(1718452800, $meta->lastModified?->getTimestamp());
+        } finally {
+            date_default_timezone_set($previous);
+        }
+    }
+
     public function test_archive_stream_builds_a_request_body(): void
     {
         $http = new MockHttpClient(MockHttpClient::text('PK', 200));
@@ -306,6 +325,7 @@ final class RepoReadTest extends TestCase
         $http = new MockHttpClient(MockHttpClient::json([
             'branch' => 'feature',
             'base' => 'main',
+            'merge_base_sha' => 'ancestor-sha',
             'stats' => ['files' => 2, 'additions' => 10, 'deletions' => 3, 'changes' => 13],
             'files' => [
                 ['path' => 'a.txt', 'state' => 'A', 'raw' => 'diff', 'additions' => 10],
@@ -327,6 +347,7 @@ final class RepoReadTest extends TestCase
         ], $http->lastQuery(), 'blank paths are dropped');
 
         self::assertSame(13, $diff->stats->changes);
+        self::assertSame('ancestor-sha', $diff->mergeBaseSha);
         self::assertSame(DiffFileState::Added, $diff->files[0]->state);
         self::assertSame(DiffFileState::Renamed, $diff->files[1]->state);
         self::assertSame('R100', $diff->files[1]->rawState);
@@ -338,6 +359,8 @@ final class RepoReadTest extends TestCase
     {
         $http = new MockHttpClient(MockHttpClient::json([
             'sha' => 'head-sha',
+            'base_sha' => 'resolved-base',
+            'merge_base_sha' => 'ancestor-sha',
             'stats' => ['files' => 1],
             'files' => [['path' => 'a.txt', 'state' => 'M', 'raw' => '--- a', 'is_eof' => true]],
         ]));
@@ -355,6 +378,9 @@ final class RepoReadTest extends TestCase
         ], $http->lastQuery());
         self::assertSame('--- a', $diff->files[0]->raw);
         self::assertTrue($diff->files[0]->isEof);
+        self::assertSame('head-sha', $diff->sha);
+        self::assertSame('resolved-base', $diff->baseSha, 'the resolved base can differ from the requested baseSha');
+        self::assertSame('ancestor-sha', $diff->mergeBaseSha);
     }
 
     public function test_grep_builds_a_nested_request_body(): void

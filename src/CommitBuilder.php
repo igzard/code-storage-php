@@ -240,11 +240,13 @@ final class CommitBuilder
 
     private static function normalizePath(string $path): string
     {
-        $path = trim($path);
+        // Strip every leading slash. A path of only slashes is empty after that
+        // and must not be committed: the server would see a blank path.
+        $path = ltrim(trim($path), '/');
         if ($path === '') {
             throw new InvalidArgumentException('file path must be a non-empty string');
         }
 
-        return ltrim($path, '/');
+        return $path;
     }
 }
