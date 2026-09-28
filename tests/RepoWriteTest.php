@@ -378,6 +378,14 @@ final class RepoWriteTest extends TestCase
         self::assertSame(['ref' => 'main'], $http->lastJsonBody());
     }
 
+    public function test_pull_upstream_without_a_ref_sends_a_json_object(): void
+    {
+        $http = new MockHttpClient(MockHttpClient::text('', 202));
+        $this->repo($http)->pullUpstream();
+
+        self::assertSame('{}', $http->lastBody());
+    }
+
     public function test_pull_upstream_rejects_other_success_statuses(): void
     {
         $http = new MockHttpClient(MockHttpClient::text('', 200));

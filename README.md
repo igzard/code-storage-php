@@ -206,6 +206,11 @@ $diff = $repo->getCommitDiff(
 filtered and every changed file has a non-empty `raw`, concatenate each
 `$diff->files[$i]->raw` in response order to produce a patch for the exact base tree.
 
+`$diff->sha` is the resolved head commit. `$diff->baseSha` is the resolved base
+commit and `$diff->mergeBaseSha` is the common ancestor used for the comparison;
+those two can differ. `getBranchDiff()` also returns `mergeBaseSha`. Both ancestry
+fields are empty strings when the API omits them.
+
 ### Hydrate a repo without an API request
 
 ```php

@@ -263,6 +263,17 @@ final class CommitTest extends TestCase
         $builder->addFileFromString('  ', 'x');
     }
 
+    public function test_a_slash_only_path_is_rejected(): void
+    {
+        $builder = $this->repo(new MockHttpClient)
+            ->createCommit(targetBranch: 'main', commitMessage: 'Update', author: $this->author());
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('file path must be a non-empty string');
+
+        $builder->addFileFromString('///', 'x');
+    }
+
     public function test_it_rejects_unsupported_encodings(): void
     {
         $builder = $this->repo(new MockHttpClient)
